@@ -1,0 +1,104 @@
+name: CI/CD Vicidial Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Run application
+        run: |
+          source venv/bin/activate
+          nohup python3 app.py &
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    environment: server_conf
+    if: github.ref == 'refs/heads/main'
+    env:
+      PSERVER_HOST: ${{ secrets.SERVER_HOST }}
+      PSERVER_USER: ${{ secrets.SERVER_USER }}
+      PSERVER_KEY: ${{ secrets.SERVER_KEY }}
+      DEPLOY_DIR: /home/bilal.ah/vicidial
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+          
+      - name: Install rsync
+        run: sudo apt-get update && sudo apt-get install -y rsync
+        
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Deploy to Production Server
+        run: |
+          # Save the SSH key to a file
+          echo "$PSERVER_KEY" > billu.pem
+          chmod 600 server_key.pem
+           
+          echo "SERVER_HOST: $PSERVER_HOST"
+          echo "SERVER_USER: $PSERVER_USER"
+          # Copy files to the server
+          rsync -avz -e "ssh -i billu.pem -o StrictHostKeyChecking=no" ./ $PSERVER_USER@$PSERVER_HOST:$DEPLOY_DIR/
+
+          # Optionally, run commands on the server
+          ssh -i server_key.pem -o StrictHostKeyChecking=no $PSERVER_USER@$PSERVER_HOST << 'EOF'
+            ls -l
+            cd /home/bilal.ah/vicidial
+            pwd
+            # Kill the existing application process
+            pkill -f "python3 app.py"
+            # Activate virtual environment and install dependencies
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install -r requirements.txt\
+            # Start the application
+            nohup python3 app.py > app.log 2>&1 &
+          EOF
+
+          # Clean up the SSH key file
+          rm billu.pem
