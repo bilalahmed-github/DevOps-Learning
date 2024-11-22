@@ -22,10 +22,14 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Deploy to GCP Compute Engine
+      - name: Deploy to GCP Compute Engine 
         env:
           SERVER_HOST: ${{ secrets.server_conf.SERVER_HOST }}
           SERVER_KEY: ${{ secrets.server_conf.SERVER_KEY }}
-          SERVER_USER: ${{ secrets.server_conf.SERVER_USER }}
+          SERVER_USER: ${{ secrets.server_conf.SERVER_USER }} 
         run: |
-          ssh -i $SERVER_KEY $SERVER_USER@$SERVER_HOST "git pull origin main && python main.py"
+            echo "Server Host: $SERVER_HOST"
+            echo "Server Key: $SERVER_KEY"
+            echo "Server User: $SERVER_USER"
+        
+          
