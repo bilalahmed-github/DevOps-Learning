@@ -36,7 +36,7 @@ jobs:
 
           # Execute commands on the server
           ssh -i server_key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
-            cd $DEPLOY_DIR
+            cd project
             ls
             
             python3 -m venv venv
