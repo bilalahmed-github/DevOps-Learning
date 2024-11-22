@@ -31,5 +31,4 @@ jobs:
             echo "Server Host: $SERVER_HOST"
             echo "Server Key: $SERVER_KEY"
             echo "Server User: $SERVER_USER"
-        
           
