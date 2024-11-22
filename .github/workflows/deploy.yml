@@ -40,4 +40,4 @@ jobs:
       - name: Deploy to GCP Compute Engine
 
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_HOST "python main.py"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_HOST "python3 main.py"
