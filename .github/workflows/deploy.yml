@@ -30,8 +30,9 @@ jobs:
       - name: Create SSH Key File
         id: create-key
         run: |
-          echo "$SERVER_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+            mkdir -p ~/.ssh
+            echo "$SERVER_KEY" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
           
       - name: Deploy to GCP Compute Engine
       
