@@ -1,0 +1,31 @@
+name: GCP Compute Engine Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Deploy to GCP Compute Engine
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_KEY: ${{ secrets.SERVER_KEY }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          ssh -i $SERVER_KEY $SERVER_USER@$SERVER_HOST "git pull origin main && python main.py"
