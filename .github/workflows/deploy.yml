@@ -8,6 +8,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
+    env:
+          SERVER_HOST: ${{ secrets.server_conf.SERVER_HOST }}
+          SERVER_KEY: ${{ secrets.server_conf.SERVER_KEY }}
+          SERVER_USER: ${{ secrets.server_conf.SERVER_USER }} 
 
     steps:
       - name: Checkout code
@@ -23,10 +28,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Deploy to GCP Compute Engine 
-        env:
-          SERVER_HOST: ${{ secrets.server_conf.SERVER_HOST }}
-          SERVER_KEY: ${{ secrets.server_conf.SERVER_KEY }}
-          SERVER_USER: ${{ secrets.server_conf.SERVER_USER }} 
+        
         run: |
             echo "Server Host: $SERVER_HOST"
             echo "Server Key: $SERVER_KEY"
