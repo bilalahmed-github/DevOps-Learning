@@ -9,36 +9,55 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: server_conf
+    if: github.ref == 'refs/heads/main'
     env:
-      SERVER_HOST: ${{ secrets.SERVER_HOST }}
-      SERVER_KEY: ${{ secrets.SERVER_KEY }}
-      SERVER_USER: ${{ secrets.SERVER_USER }} 
-
+      PSERVER_HOST: ${{ secrets.SERVER_HOST }}
+      PSERVER_USER: ${{ secrets.SERVER_USER }}
+      PSERVER_KEY: ${{ secrets.SERVER_KEY }}
+      DEPLOY_DIR: /home/bilal.ah/vicidial
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.x'
+          python-version: '3.9'
           
+      - name: Install rsync
+        run: sudo apt-get update && sudo apt-get install -y rsync
+        
       - name: Install dependencies
         run: |
+          python -m venv venv
+          source venv/bin/activate
           pip install -r requirements.txt
 
-      - name: Create SSH Key File
-        id: create-key
+      - name: Deploy to Production Server
         run: |
-          mkdir -p ~/.ssh
-          echo "$SERVER_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          
-      - name: Disable SSH Strict Host Key Checking
-        run: echo "StrictHostKeyChecking no" >> ~/.ssh/config
+          # Save the SSH key to a file
+          echo "$PSERVER_KEY" > billu.pem
+          chmod 600 billu.pem
+           
+          echo "SERVER_HOST: $PSERVER_HOST"
+          echo "SERVER_USER: $PSERVER_USER"
+          # Copy files to the server
+          rsync -avz -e "ssh -i billu.pem -o StrictHostKeyChecking=no" ./ $PSERVER_USER@$PSERVER_HOST:$DEPLOY_DIR/
 
-      - name: Deploy to GCP Compute Engine
+          # Optionally, run commands on the server
+          ssh -i billu.pem -o StrictHostKeyChecking=no $PSERVER_USER@$PSERVER_HOST << 'EOF'
+            ls -l
+            cd /home/bilal.ah/vicidial
+            pwd
+            # Kill the existing application process
+            pkill -f "python3 app.py"
+            # Activate virtual environment and install dependencies
+            python3 -m venv venv
+            source venv/bin/activate
+            pip install -r requirements.txt
+            # Start the application
+            python3 main.py
+          EOF
 
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_HOST "pwd && git pull origin main && python main.py"
-
+          # Clean up the SSH key file
+          rm billu.pem
