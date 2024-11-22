@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: server_conf
     env:
-          SERVER_HOST: ${{ secrets.server_conf.SERVER_HOST }}
-          SERVER_KEY: ${{ secrets.server_conf.SERVER_KEY }}
-          SERVER_USER: ${{ secrets.server_conf.SERVER_USER }} 
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_KEY: ${{ secrets.SERVER_KEY }}
+          SERVER_USER: ${{ secrets.SERVER_USER }} 
 
     steps:
       - name: Checkout code
