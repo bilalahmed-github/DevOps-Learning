@@ -24,8 +24,8 @@ jobs:
 
       - name: Deploy to GCP Compute Engine
         env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_KEY: ${{ secrets.SERVER_KEY }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.server_conf.SERVER_HOST }}
+          SERVER_KEY: ${{ secrets.server_conf.SERVER_KEY }}
+          SERVER_USER: ${{ secrets.server_conf.SERVER_USER }}
         run: |
           ssh -i $SERVER_KEY $SERVER_USER@$SERVER_HOST "git pull origin main && python main.py"
