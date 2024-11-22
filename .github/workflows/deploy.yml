@@ -38,6 +38,6 @@ jobs:
         run: echo "StrictHostKeyChecking no" >> ~/.ssh/config
 
       - name: Deploy to GCP Compute Engine
-      
+
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_HOST "git pull origin main && python main.py"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_HOST "python main.py"
