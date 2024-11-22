@@ -1,4 +1,4 @@
-name: GCP Compute Engine Deployment
+name: Deploy to GCP Server
 
 on:
   push:
@@ -9,48 +9,37 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: server_conf
-    if: github.ref == 'refs/heads/main'
-    env:
-      PSERVER_HOST: ${{ secrets.SERVER_HOST }}
-      PSERVER_USER: ${{ secrets.SERVER_USER }}
-      PSERVER_KEY: ${{ secrets.SERVER_KEY }}
-      DEPLOY_DIR: /home/bilal.ah/vicidial
+
     steps:
-      - name: Create SSH Directory and Config File
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install rsync
+        run: sudo apt-get update && sudo apt-get install -y rsync
+
+      - name: Deploy to GCP Server
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_KEY: ${{ secrets.SERVER_KEY }}
+          DEPLOY_DIR: /home/bilal.ah/project
         run: |
-          mkdir -p ~/.ssh
-          touch ~/.ssh/config
-          echo "StrictHostKeyChecking no" > ~/.ssh/config
+          # Save the SSH key
+          echo "$SERVER_KEY" > server_key.pem
+          chmod 600 server_key.pem
 
-      - name: SSH Key Scan
-        run: ssh-keyscan -H $PSERVER_HOST >> ~/.ssh/known_hosts
+          # Sync files to the server
+          rsync -avz -e "ssh -i server_key.pem -o StrictHostKeyChecking=no" ./ $SERVER_USER@$SERVER_HOST:$DEPLOY_DIR/
 
-      - name: Deploy to Production Server
-        run: |
-          # Save the SSH key to a file
-          echo "$PSERVER_KEY" > billu.pem
-          chmod 600 billu.pem
-           
-          echo "SERVER_HOST: $PSERVER_HOST"
-          echo "SERVER_USER: $PSERVER_USER"
-
-          ssh -o StrictHostKeyChecking=no $PSERVER_USER@$PSERVER_HOST "sudo apt update && sudo apt install -y rsync"
-          # Copy files to the server
-          rsync -avz -e "ssh -i billu.pem -o StrictHostKeyChecking=no" ./ $PSERVER_USER@$PSERVER_HOST:$DEPLOY_DIR/
-
-          # Optionally, run commands on the server
-          ssh -i billu.pem -o StrictHostKeyChecking=no $PSERVER_USER@$PSERVER_HOST << 'EOF'
-            ls -l
-            cd /home/bilal.ah/vicidial
-            pwd
-
-            pkill -f "python3 app.py"
-
+          # Execute commands on the server
+          ssh -i server_key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
+            cd $DEPLOY_DIR
+            
             python3 -m venv venv
             source venv/bin/activate
             pip install -r requirements.txt
             python3 main.py
           EOF
 
-          # Clean up the SSH key file
-          rm billu.pem
+          # Clean up
+          rm server_key.pem
