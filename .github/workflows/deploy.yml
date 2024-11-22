@@ -16,8 +16,11 @@ jobs:
       PSERVER_KEY: ${{ secrets.SERVER_KEY }}
       DEPLOY_DIR: /home/bilal.ah/vicidial
     steps:
-      - name: Disable SSH Strict Host Key Checking
-        run: echo "StrictHostKeyChecking no" >> ~/.ssh/config
+      - name: Create SSH Directory and Config File
+        run: |
+          mkdir -p ~/.ssh
+          touch ~/.ssh/config
+          echo "StrictHostKeyChecking no" > ~/.ssh/config
 
       - name: SSH Key Scan
         run: ssh-keyscan -H $PSERVER_HOST >> ~/.ssh/known_hosts
@@ -41,9 +44,9 @@ jobs:
             ls -l
             cd /home/bilal.ah/vicidial
             pwd
-            
-            pkill -f "python3 app.py"
 
+            pkill -f "python3 app.py"
+            
             python3 -m venv venv
             source venv/bin/activate
             pip install -r requirements.txt
