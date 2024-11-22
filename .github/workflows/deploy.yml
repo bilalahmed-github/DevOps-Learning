@@ -38,7 +38,8 @@ jobs:
           ssh -i server_key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
             cd project
             ls
-            
+            # Kill the existing application process
+            pkill -f "python3 main.py"
             python3 -m venv venv
             source venv/bin/activate
             pip install -r requirements.txt
