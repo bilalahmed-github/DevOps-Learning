@@ -25,9 +25,6 @@ jobs:
       - name: SSH Key Scan
         run: ssh-keyscan -H $PSERVER_HOST >> ~/.ssh/known_hosts
 
-      - name: Install rsync in remote server
-        run: ssh -o StrictHostKeyChecking=no $PSERVER_USER@$PSERVER_HOST "sudo apt update && sudo apt install -y rsync"
-
       - name: Deploy to Production Server
         run: |
           # Save the SSH key to a file
@@ -36,6 +33,8 @@ jobs:
            
           echo "SERVER_HOST: $PSERVER_HOST"
           echo "SERVER_USER: $PSERVER_USER"
+
+          ssh -o StrictHostKeyChecking=no $PSERVER_USER@$PSERVER_HOST "sudo apt update && sudo apt install -y rsync"
           # Copy files to the server
           rsync -avz -e "ssh -i billu.pem -o StrictHostKeyChecking=no" ./ $PSERVER_USER@$PSERVER_HOST:$DEPLOY_DIR/
 
@@ -46,7 +45,7 @@ jobs:
             pwd
 
             pkill -f "python3 app.py"
-            
+
             python3 -m venv venv
             source venv/bin/activate
             pip install -r requirements.txt
