@@ -30,11 +30,14 @@ jobs:
       - name: Create SSH Key File
         id: create-key
         run: |
-            mkdir -p ~/.ssh
-            echo "$SERVER_KEY" > ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
+          mkdir -p ~/.ssh
+          echo "$SERVER_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
           
+      - name: Disable SSH Strict Host Key Checking
+        run: echo "StrictHostKeyChecking no" >> ~/.ssh/config
+
       - name: Deploy to GCP Compute Engine
       
         run: |
-          ssh -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_HOST "git pull origin main && python main.py"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_HOST "git pull origin main && python main.py"
