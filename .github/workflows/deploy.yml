@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+    environment: server_conf
     env:
           SERVER_HOST: ${{ secrets.server_conf.SERVER_HOST }}
           SERVER_KEY: ${{ secrets.server_conf.SERVER_KEY }}
